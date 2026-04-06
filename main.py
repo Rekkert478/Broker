@@ -13,7 +13,8 @@ def prompt_api_key() -> str:
     key_var = tk.StringVar()
     key_entry = tk.Entry(dialog, textvariable=key_var, width=48, show="*")
     key_entry.pack(pady=4, padx=16)
-    key_entry.focus_set()
+    key_entry.focus_set() # setzt den Fokus auf das Eingabefeld, dass
+                          # die Tatstatureingabe direkt möglich ist
 
     result: dict[str, str | None] = {"api_key": None}
 
@@ -32,7 +33,7 @@ def prompt_api_key() -> str:
     tk.Button(button_frame, text="OK", command=on_confirm, width=10).pack(side="left", padx=6)
     tk.Button(button_frame, text="Abbrechen", command=on_cancel, width=10).pack(side="left", padx=6)
 
-    dialog.bind("<Return>", lambda _event: on_confirm())
+    dialog.bind("<Return>", lambda _event: on_confirm()) # ermöglicht das Drücken der Enter-Taste als Bestätigung
     dialog.protocol("WM_DELETE_WINDOW", on_cancel)
     dialog.mainloop()
 

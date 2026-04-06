@@ -9,12 +9,6 @@ from plotter import Plotter
 
 
 class GUI:
-    SYMBOLS = {
-        "stocks": ["IBM", "AAPL", "MSFT"],
-        "crypto": ["BTC", "ETH", "SOL"],
-        "forex": ["EUR/USD", "GBP/USD", "USD/JPY"],
-    }
-
     def __init__(self, api_key: str) -> None:
         self.fetch = Fetch(api_key)
         self.plotter = Plotter()
@@ -24,6 +18,8 @@ class GUI:
         self.root.geometry("1200x750")
 
         self.selected_category = tk.StringVar(value="stocks")
+        self.symbol_query = tk.StringVar()
+        self.status_text = tk.StringVar(value="")
 
         self._build_layout()
         self._load_symbols_for_category()
@@ -54,6 +50,18 @@ class GUI:
             )
             button.pack(fill="x", pady=2)
 
+        import_frame = ttk.LabelFrame(left_panel, text="Symbole per Query importieren", padding=8)
+        import_frame.pack(fill="x", pady=(0, 10))
+
+        query_entry = ttk.Entry(import_frame, textvariable=self.symbol_query)
+        query_entry.pack(fill="x")
+        query_entry.bind("<Return>", self._on_import_query)
+
+        ttk.Label(import_frame, text="Beispiel: apple, tesla, eurusd").pack(anchor="w", pady=(4, 6))
+
+        ttk.Button(import_frame, text="Importieren", command=self._import_symbols_from_query).pack(fill="x")
+        ttk.Label(import_frame, textvariable=self.status_text, wraplength=260).pack(anchor="w", pady=(6, 0))
+
         list_frame = ttk.Frame(left_panel)
         list_frame.pack(fill="both", expand=True)
 
@@ -80,7 +88,7 @@ class GUI:
 
     def _load_symbols_for_category(self) -> None:
         category = self.selected_category.get()
-        symbols = self.SYMBOLS.get(category, [])
+        symbols = self.fetch.get_symbols(category)
 
         self.symbol_listbox.delete(0, tk.END)
         for symbol in symbols:
@@ -93,6 +101,36 @@ class GUI:
 
     def _on_symbol_selected(self, _event: object) -> None:
         self._plot_selected_symbol()
+
+    def _on_import_query(self, _event: object) -> None:
+        self._import_symbols_from_query()
+
+    def _import_symbols_from_query(self) -> None:
+        query = self.symbol_query.get().strip()
+        if not query:
+            self.status_text.set("Bitte Suchbegriff eingeben.")
+            return
+
+        category = self.selected_category.get()
+
+        try:
+            added, last_added = self.fetch.import_symbols_from_query(category, query)
+            symbols = self.fetch.get_symbols(category)
+
+            self._load_symbols_for_category()
+            if last_added:
+                index = symbols.index(last_added)
+                self.symbol_listbox.selection_clear(0, tk.END)
+                self.symbol_listbox.selection_set(index)
+                self.symbol_listbox.activate(index)
+                self._plot_selected_symbol()
+
+            if added:
+                self.status_text.set(f"{added} Symbol(e) importiert.")
+            else:
+                self.status_text.set("Keine neuen passenden Symbole gefunden.")
+        except Exception as error:
+            self.status_text.set(f"Import fehlgeschlagen: {error}")
 
     def _get_selected_symbol(self) -> str | None:
         selected = self.symbol_listbox.curselection()

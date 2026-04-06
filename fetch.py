@@ -1,6 +1,9 @@
 import requests
 import pandas as pd
 import matplotlib.pyplot as plt
+import re
+
+from symbol_store import SymbolStore
 
 
 class Fetch:
@@ -9,7 +12,11 @@ class Fetch:
     def __init__(self, api_key: str, timeout: int = 30) -> None:
         self.api_key = api_key
         self.timeout = timeout
+        self.symbol_store = SymbolStore()
 
+    def get_symbols(self, category: str) -> list[str]:
+        return self.symbol_store.get_symbols(category)
+    
     def _request(self, params: dict) -> dict:
         request_params = {**params, "apikey": self.api_key}
         response = requests.get(self.BASE_URL, params=request_params, timeout=self.timeout)
@@ -22,6 +29,29 @@ class Fetch:
             raise RuntimeError(f"AlphaVantage Limit/Note: {data['Note']}")
 
         return data
+
+    # Methode zum Suchen von Symbolen basierend auf einem Suchbegriff, die von GUI 
+    # aufgerufen wird
+    # Sie nutzt die AlphaVantage Funktion "SYMBOL_SEARCH", um passende Symbole zu finden, 
+    # und filtert die Ergebnisse
+    def search_symbols(self, keywords: str) -> list[dict]:
+        params = {
+            "function": "SYMBOL_SEARCH",
+            "keywords": keywords,
+        }
+        data = self._request(params)
+        matches = data.get("bestMatches")
+        if not matches:
+            return []
+        return matches
+
+    def import_symbols_from_query(self, category: str, query: str) -> tuple[int, str | None]:
+        terms = [term for term in re.split(r"[,;]+", query) if term.strip()]
+        matches: list[dict] = []
+        for term in terms:
+            matches.extend(self.search_symbols(term.strip()))
+
+        return self.symbol_store.import_from_matches(category, matches)
 
     @staticmethod
     def _to_ohlc_dataframe(time_series: dict) -> pd.DataFrame:

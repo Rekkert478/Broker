@@ -1,0 +1,31 @@
+{
+  "stocks": [
+    "IBM",
+    "AAPL",
+    "MSFT",
+    "0R0X.LON",
+    "TSLA",
+    "TL0.DEX",
+    "TL0.FRK",
+    "TSLA34.SAO",
+    "TSLA.TRT",
+    "TL01.FRK",
+    "NVDA",
+    "0R1I.LON",
+    "NVDA.TRT",
+    "NVD.FRK",
+    "NVDC34.SAO",
+    "NVDG.FRK",
+    "NVD.DEX"
+  ],
+  "crypto": [
+    "BTC",
+    "ETH",
+    "SOL"
+  ],
+  "forex": [
+    "EUR/USD",
+    "GBP/USD",
+    "USD/JPY"
+  ]
+}
