@@ -12,10 +12,13 @@ class SymbolStore:
 
     def __init__(self, symbols_file: Path | None = None) -> None:
         # Standardmäßig liegt symbols.json neben dieser Datei.
+        # Über self werden in Python Objektvariablen erzeugt.
         self.symbols_file = symbols_file or Path(__file__).with_name("symbols.json")
         # Beim Start immer den gespeicherten Zustand laden (oder Defaults wiederherstellen).
         self.symbols = self._load_symbols()
 
+    # self muss als Parameter übergeben werden, damit die Methode auf die Objektvariablen 
+    # zugreifen kann.
     def _load_symbols(self) -> dict[str, list[str]]:
         # Kopie der Defaults erzeugen, damit die Originalkonstante unverändert bleibt.
         base = {category: list(values) for category, values in self.DEFAULT_SYMBOLS.items()}
